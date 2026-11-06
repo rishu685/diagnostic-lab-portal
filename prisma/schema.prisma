@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Patient {
+  id            String       @id @default(cuid())
+  mrn           String       @unique
+  fullName      String
+  phone         String
+  age           Int
+  gender        String
+  consentGiven  Boolean      @default(true)
+  preferredLang String       @default("te") // te, en, hi
+  orders        Order[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Doctor {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  specialty String?
+  phone     String?
+  orders    Order[]
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id             String        @id // e.g. ORD-71204
+  patientId      String
+  patient        Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId       String
+  doctor         Doctor        @relation(fields: [doctorId], references: [id])
+  labCentre      String        @default("Vijayawada Central Lab")
+  status         String        @default("PROCESSING") // PROCESSING, READY, READY_CRITICAL, DELIVERED
+  signedAt       DateTime?
+  pathologist    String?       @default("Dr. K. V. Rao, MD (Path)")
+  secureToken    String?       @unique
+  tokenExpiresAt DateTime?
+  parameters     TestResult[]
+  aiSummary      AiSummary?
+  callbackTask   CallbackTask?
+  accessLogs     AccessLog[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model TestResult {
+  id            String   @id @default(cuid())
+  orderId       String
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  testCategory  String   // Complete Blood Count, Lipid Profile, Kidney Function, etc.
+  parameterName String   // Haemoglobin, Potassium, LDL cholesterol, etc.
+  resultValue   Float
+  unit          String
+  refRangeMin   Float
+  refRangeMax   Float
+  flag          String   @default("NORMAL") // NORMAL, OUT_OF_RANGE, CRITICAL
+  createdAt     DateTime @default(now())
+}
+
+model AiSummary {
+  id                  String   @id @default(cuid())
+  orderId             String   @unique
+  order               Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  summaryEn           String
+  summaryTe           String   // Telugu translation
+  summaryHi           String   // Hindi translation
+  isTemplate          Boolean  @default(false)
+  isFlaggedByPatient  Boolean  @default(false)
+  patientFeedback     String?
+  pathologistApproved Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model CallbackTask {
+  id           String    @id @default(cuid())
+  orderId      String    @unique
+  order        Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  urgentReason String
+  assignedTo   String?   @default("Front Desk Duty Staff")
+  status       String    @default("PENDING") // PENDING, IN_PROGRESS, RESOLVED, ESCALATED
+  callNotes    String?
+  calledAt     DateTime?
+  resolvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model AccessLog {
+  id         String   @id @default(cuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  actorPhone String
+  actorRole  String   // PATIENT, FRONT_DESK, DOCTOR, PATHOLOGIST
+  action     String   // LINK_OPENED, OTP_REQUESTED, OTP_VERIFIED, REPORT_VIEWED, LINK_RESENT, DOWNLOAD_PDF, CALLBACK_UPDATED
+  ipAddress  String?  @default("127.0.0.1")
+  userAgent  String?  @default("Mozilla/5.0")
+  status     String   @default("SUCCESS") // SUCCESS, FAILURE, EXPIRED
+  details    String?
+  createdAt  DateTime @default(now())
+}
