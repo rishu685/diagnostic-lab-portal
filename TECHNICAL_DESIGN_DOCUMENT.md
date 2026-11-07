@@ -213,24 +213,26 @@ For non-critical out-of-range values (e.g. Haemoglobin 10.2 g/dL):
 
 ---
 
-## 5. UI/UX Design Decisions
+## 5. UI/UX Design Decisions: The Kanso Minimalist Architecture
 
-The client brief stresses minimal design: *"Clean layouts, white space, a restrained palette and clear type, with nothing on screen that lacks a purpose. Many patients are elderly on small phones: large text, one clear action per screen, and a report page that reads well in Telugu."*
+The client brief mandates: *"The client values good, minimal design: clean layouts, white space, a restrained palette and clear type, with nothing on screen that lacks a purpose. Design counts as much as features. Many patients are elderly on small phones: large text, one clear action per screen, and a report page that reads well in Telugu."*
 
-### Key Screen Implementations:
-1. **Home Screen (`/`)**: Executive dashboard highlighting the four core user roles, financial impact meters (₹36 Lakh saved in inquiries, ₹34.56 Lakh in printing), and 1-click sample order quick launchers.
-2. **Front-Desk Console (`/front-desk`)**: Search by patient, phone, or order reference. Shows active 72-hour link countdowns and 1-tap WhatsApp/SMS link resend with instant feedback.
-3. **LIS CSV Importer (`/lis-import`)**: Clean input supporting drag-and-drop CSV upload and a "Reset to Brief Samples" preset for evaluators. Shows real-time flag preview before committing.
-4. **Critical Callbacks Queue (`/callbacks`)**: High-contrast rose clinical warning banner, patient/doctor direct dial links (`tel:`), and resolution notes.
-5. **Patient OTP Verification (`/r/[token]` & `/patient/login`)**: Large 48px touch targets, clean bilingual Telugu/English labels, and single-action screen progression. Includes an "Auto-fill Demo Code" button for evaluators.
-6. **Patient Interactive Report (`/report/[id]`)**:
-   - Prominent language pills (**తెలుగు** | **English** | **हिंदी**).
-   - High-contrast color-coded indicators: Green (Normal), Amber (Out of Range), Crimson (Critical Alert).
-   - Plain-language explanation box with patient flag button.
-   - Print-optimized CSS (`@media print`) rendering an accredited diagnostic lab document.
-7. **Referring Doctor Portal (`/doctor`)**: Doctor code switcher (Dr. Ramanaiah, Dr. Anitha, Dr. Suresh) displaying a 90-day filterable table of their referred patients.
-8. **DPDP Act Audit Trail (`/audit-logs`)**: Immutable event logger showing IP addresses, user agents, actor roles, and timestamps.
-9. **In-App SMS / WhatsApp Simulator**: Floating bottom-right drawer allowing reviewers to inspect the simulated SMS and WhatsApp messages without requiring third-party telecom API keys.
+To achieve this at an elite standard, the design architecture is inspired by the **Kanso (簡素)** philosophy—Japanese aesthetic of purity, unadorned simplicity, and intentional restraint:
+
+1. **Editorial Typography**:
+   - Primary Headers: **Newsreader & EB Garamond** serif headings with classical italicized accents (`<em>for patients & doctors</em>`), evoking trust, warmth, and clinical prestige.
+   - Body & Controls: **Plus Jakarta Sans & Inter** for crisp, highly readable mobile typography.
+   - Clinical Parameters: **Geist Mono** for numeric results, reference ranges, and tokens.
+2. **Atmospheric Color & Surface Palette**:
+   - Warm paper canvas (`#fcfcfc`), tactile stone cards (`#f5f5f4`), delicate borders (`#e7e5e4`), and deep charcoal ink (`#1a1817`).
+   - Restrained semantic indicators: Muted clinical olive for operational sync, soft amber for out-of-range parameters, and high-contrast terracotta for critical alerts.
+   - **Bespoke Theme System**: Includes an instantaneous Light/Dark theme toggle (warm paper mode vs. obsidian night mode) with smooth CSS variable transitions.
+3. **Signature Kanso Components & Features**:
+   - **Live Perspective Activity Stage (`/`)**: A dynamic 3D-inspired clinical feed displaying live order dispatches, pathologist sign-offs, and critical callbacks across coastal AP labs with animated pulse beacons.
+   - **Elderly-First Accessibility**: 48px+ touch targets, uncluttered single-action forms, and natural Telugu vernacular phrasing (`మీ ల్యాబ్ రిపోర్ట్ / సులభమైన వివరణ`).
+   - **Clinical Tenets Grid**: Structured editorial manifesto explaining clinical governance, privacy, and patient dignity.
+   - **Print-Optimized Diagnostic Document (`/report/[id]`)**: `@media print` layout rendering an accredited diagnostic lab document ready for physical records.
+   - **Floating In-App Simulator**: Discreet drawer providing reviewers live access to mocked SMS and WhatsApp dispatches with one-click copyable test codes.
 
 ---
 

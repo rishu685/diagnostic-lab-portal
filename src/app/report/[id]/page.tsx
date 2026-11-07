@@ -54,10 +54,6 @@ interface ReportData {
     isTemplate: boolean;
     isFlaggedByPatient: boolean;
   } | null;
-  callbackTask?: {
-    urgentReason: string;
-    status: string;
-  } | null;
 }
 
 export default function PatientReportPage({
@@ -136,25 +132,25 @@ export default function PatientReportPage({
 
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-20 text-center text-slate-500">
-        <Activity className="w-8 h-8 animate-spin mx-auto text-sky-600 mb-3" />
-        <h2 className="text-base font-bold text-slate-800">రిపోర్ట్ లోడ్ అవుతోంది... / Loading Report...</h2>
-        <p className="text-xs text-slate-400 mt-1">Verifying encrypted signature and reference values</p>
+      <div className="max-w-3xl mx-auto px-4 py-24 text-center text-[var(--ink-muted)]">
+        <Activity className="w-8 h-8 animate-spin mx-auto text-[var(--ink)] mb-3" />
+        <h2 className="text-base font-serif font-semibold text-[var(--ink)]">రిపోర్ట్ లోడ్ అవుతోంది... / Loading Report...</h2>
+        <p className="text-xs mt-1 font-mono">Verifying encrypted signature and reference values</p>
       </div>
     );
   }
 
   if (error || !report) {
     return (
-      <div className="max-w-md mx-auto px-4 py-16 text-center space-y-4">
-        <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4">
+        <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
           <AlertTriangle className="w-6 h-6" />
         </div>
-        <h2 className="text-lg font-bold text-slate-900">Report Not Available</h2>
-        <p className="text-xs text-slate-600">{error || "Could not retrieve medical record"}</p>
+        <h2 className="text-lg font-serif font-bold text-[var(--ink)]">Report Not Available</h2>
+        <p className="text-xs text-[var(--ink-secondary)]">{error || "Could not retrieve medical record"}</p>
         <Link
           href="/patient/login"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-600 text-white font-semibold text-xs"
+          className="kanso-btn-primary text-xs"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Return to Patient Portal</span>
@@ -164,7 +160,6 @@ export default function PatientReportPage({
   }
 
   const isCritical = report.status === "READY_CRITICAL";
-  const hasOutOfRange = report.parameters.some((p) => p.flag === "OUT_OF_RANGE" || p.flag === "CRITICAL");
 
   // Summary selection by language
   const activeSummary =
@@ -175,40 +170,46 @@ export default function PatientReportPage({
       : report.aiSummary?.summaryEn;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10 space-y-6">
       {/* Top Action Toolbar (No print) */}
-      <div className="no-print flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
+      <div className="no-print flex flex-wrap items-center justify-between gap-3 bg-[var(--surface)] p-3 rounded-2xl border border-[var(--border)] shadow-[var(--shadow-sm)]">
         <Link
           href="/patient/login"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--ink-secondary)] hover:text-[var(--ink)] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back</span>
+          <span>Back to Portal</span>
         </Link>
 
         {/* Multilingual Selector Pills (Telugu, English, Hindi) */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
-          <Languages className="w-3.5 h-3.5 text-slate-500 ml-1.5 mr-0.5" />
+        <div className="flex items-center gap-1 bg-[var(--surface-card)] p-1 rounded-full border border-[var(--border-subtle)]">
+          <Languages className="w-3.5 h-3.5 text-[var(--ink-muted)] ml-2 mr-0.5" />
           <button
             onClick={() => setSelectedLang("te")}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
-              selectedLang === "te" ? "bg-sky-600 text-white shadow-2xs" : "text-slate-700 hover:text-slate-900"
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+              selectedLang === "te"
+                ? "bg-[var(--ink)] text-[var(--bg)] shadow-[var(--shadow-sm)]"
+                : "text-[var(--ink-secondary)] hover:text-[var(--ink)]"
             }`}
           >
             తెలుగు
           </button>
           <button
             onClick={() => setSelectedLang("en")}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
-              selectedLang === "en" ? "bg-sky-600 text-white shadow-2xs" : "text-slate-700 hover:text-slate-900"
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+              selectedLang === "en"
+                ? "bg-[var(--ink)] text-[var(--bg)] shadow-[var(--shadow-sm)]"
+                : "text-[var(--ink-secondary)] hover:text-[var(--ink)]"
             }`}
           >
             English
           </button>
           <button
             onClick={() => setSelectedLang("hi")}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
-              selectedLang === "hi" ? "bg-sky-600 text-white shadow-2xs" : "text-slate-700 hover:text-slate-900"
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+              selectedLang === "hi"
+                ? "bg-[var(--ink)] text-[var(--bg)] shadow-[var(--shadow-sm)]"
+                : "text-[var(--ink-secondary)] hover:text-[var(--ink)]"
             }`}
           >
             हिंदी
@@ -219,7 +220,7 @@ export default function PatientReportPage({
         <div className="flex items-center gap-2">
           <button
             onClick={handleShare}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors"
+            className="kanso-btn-secondary py-1.5 px-3 text-xs"
           >
             {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Share2 className="w-3.5 h-3.5" />}
             <span>{copiedLink ? "Copied" : "Share"}</span>
@@ -227,7 +228,7 @@ export default function PatientReportPage({
 
           <button
             onClick={handlePrint}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-colors shadow-2xs"
+            className="kanso-btn-primary py-1.5 px-3.5 text-xs font-semibold"
           >
             <Printer className="w-3.5 h-3.5" />
             <span>Download Official PDF</span>
@@ -236,54 +237,60 @@ export default function PatientReportPage({
       </div>
 
       {/* Official Diagnostic Report Paper Card */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-md p-6 sm:p-10 space-y-6 card-print">
+      <div className="bg-[var(--surface)] rounded-3xl border border-[var(--border)] shadow-[var(--shadow-md)] p-6 sm:p-12 space-y-8 card-print">
         {/* Lab Letterhead Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b-2 border-slate-900 gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-sky-700 text-white flex items-center justify-center font-bold text-xl shadow-xs">
-              <Activity className="w-7 h-7" />
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-[var(--border)] gap-4">
+          <div className="flex items-center gap-3.5">
+            <span className="w-12 h-12 rounded-full border border-[var(--ink)] bg-[var(--ink)] text-[var(--bg)] flex items-center justify-center shrink-0">
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="9.5"></circle>
+                <path d="M12 3v18"></path>
+                <path d="M16 8l-4 4 4 4"></path>
+              </svg>
+            </span>
             <div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">COASTAL DIAGNOSTICS</h1>
-              <p className="text-xs font-medium text-slate-600">
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[var(--ink)] tracking-tight">
+                Coastal<span className="font-normal italic">Diagnostics</span>
+              </h1>
+              <p className="text-xs text-[var(--ink-secondary)] font-medium">
                 Central Clinical Reference Laboratory • NABL Accredited (ISO 15189)
               </p>
-              <p className="text-[11px] text-slate-400">Benz Circle, Vijayawada, Andhra Pradesh - 520010</p>
+              <p className="text-[11px] text-[var(--ink-muted)]">Benz Circle, Vijayawada, Andhra Pradesh - 520010</p>
             </div>
           </div>
 
-          <div className="text-left sm:text-right text-xs space-y-1">
-            <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px]">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Electronically Signed</span>
+          <div className="text-left sm:text-right text-xs space-y-1 font-mono">
+            <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold text-[11px]">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Signed &amp; Dispatched</span>
             </div>
-            <div className="text-slate-500 font-mono text-[11px]">Order: {report.id}</div>
-            <div className="text-slate-400 text-[10px]">
+            <div className="text-[var(--ink-muted)] text-[11px]">Order: {report.id}</div>
+            <div className="text-[var(--ink-muted)] text-[10px]">
               {report.signedAt ? new Date(report.signedAt).toLocaleString() : "Processing"}
             </div>
           </div>
         </div>
 
         {/* Patient Demographics & Doctor Bar */}
-        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div className="bg-[var(--surface-card)] p-4 sm:p-5 rounded-2xl border border-[var(--border)] grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
           <div>
-            <div className="text-[10px] uppercase font-bold text-slate-400">Patient Name</div>
-            <div className="font-bold text-slate-900 text-sm mt-0.5">{report.patient.fullName}</div>
+            <div className="text-[10px] uppercase font-mono tracking-wider text-[var(--ink-muted)]">Patient Name</div>
+            <div className="font-serif font-bold text-[var(--ink)] text-sm sm:text-base mt-0.5">{report.patient.fullName}</div>
           </div>
           <div>
-            <div className="text-[10px] uppercase font-bold text-slate-400">Age / Gender</div>
-            <div className="font-bold text-slate-800 mt-0.5">
+            <div className="text-[10px] uppercase font-mono tracking-wider text-[var(--ink-muted)]">Age / Gender</div>
+            <div className="font-semibold text-[var(--ink)] mt-0.5">
               {report.patient.age} Yrs / {report.patient.gender}
             </div>
           </div>
           <div>
-            <div className="text-[10px] uppercase font-bold text-slate-400">MRN (Hospital ID)</div>
-            <div className="font-mono text-slate-800 mt-0.5">{report.patient.mrn}</div>
+            <div className="text-[10px] uppercase font-mono tracking-wider text-[var(--ink-muted)]">MRN (Hospital ID)</div>
+            <div className="font-mono text-[var(--ink)] mt-0.5">{report.patient.mrn}</div>
           </div>
           <div>
-            <div className="text-[10px] uppercase font-bold text-slate-400">Referring Doctor</div>
-            <div className="font-bold text-slate-900 mt-0.5 flex items-center gap-1">
-              <Stethoscope className="w-3.5 h-3.5 text-sky-700" />
+            <div className="text-[10px] uppercase font-mono tracking-wider text-[var(--ink-muted)]">Referring Doctor</div>
+            <div className="font-semibold text-[var(--ink)] mt-0.5 flex items-center gap-1">
+              <Stethoscope className="w-3.5 h-3.5 text-[var(--ink-muted)]" />
               <span>{report.doctor.name}</span>
             </div>
           </div>
@@ -291,15 +298,15 @@ export default function PatientReportPage({
 
         {/* CRITICAL VALUE EMERGENCY BANNER (If Critical) */}
         {isCritical && (
-          <div className="bg-rose-50 border-2 border-rose-500 rounded-2xl p-5 text-rose-950 space-y-2">
-            <div className="flex items-center gap-2 font-bold text-sm text-rose-700">
+          <div className="bg-rose-50 border border-rose-300 rounded-2xl p-5 text-rose-950 space-y-2">
+            <div className="flex items-center gap-2 font-serif font-bold text-sm text-rose-800">
               <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0" />
               <span>అత్యవసర సమాచారం: క్లినికల్ అలర్ట్ / Critical Clinical Notification</span>
             </div>
-            <p className="text-xs text-rose-900 leading-relaxed">
+            <p className="text-xs text-rose-900 leading-relaxed font-sans">
               ఈ రిపోర్ట్‌లో ఒక ముఖ్యమైన పరీక్ష తీవ్రమైన పరిమితిని దాటింది. మా క్లినికల్ డెస్క్ వెంటనే మీ వైద్యుడికి మరియు మీకు కాల్ చేయడానికి బాధ్యత వహిస్తుంది. దయచేసి వెంటనే మీ డాక్టర్‌ని సంప్రదించండి.
             </p>
-            <p className="text-xs text-rose-800 font-medium">
+            <p className="text-xs text-rose-800 font-medium font-sans">
               (One or more values require immediate physician consultation. Automated AI summary is suppressed for clinical safety.)
             </p>
           </div>
@@ -307,11 +314,11 @@ export default function PatientReportPage({
 
         {/* PLAIN-LANGUAGE SUMMARY BOX (In Telugu / English / Hindi) */}
         {!isCritical && activeSummary && (
-          <div className="bg-gradient-to-br from-sky-50 to-teal-50 border border-sky-200 rounded-2xl p-5 space-y-3">
+          <div className="kanso-card rounded-2xl p-6 bg-[var(--surface-card)] space-y-3 border-[var(--border)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-sky-600" />
-                <h3 className="font-bold text-slate-900 text-xs sm:text-sm">
+                <Sparkles className="w-4 h-4 text-[var(--ink-muted)]" />
+                <h3 className="font-serif font-semibold text-[var(--ink)] text-sm sm:text-base">
                   {selectedLang === "te"
                     ? "సులభమైన వివరణ (Plain Explanation)"
                     : selectedLang === "hi"
@@ -320,18 +327,18 @@ export default function PatientReportPage({
                 </h3>
               </div>
 
-              <span className="text-[10px] font-semibold text-sky-800 bg-sky-100 px-2 py-0.5 rounded-full border border-sky-200">
-                {report.aiSummary?.isTemplate ? "Locked Clinical Template" : "AI Synthesized"}
+              <span className="kanso-pill font-mono text-[9px]">
+                {report.aiSummary?.isTemplate ? "Locked Template" : "AI Synthesized"}
               </span>
             </div>
 
-            <p className="text-slate-800 text-sm leading-relaxed font-medium">
+            <p className="text-[var(--ink)] text-sm sm:text-base leading-relaxed font-normal">
               {activeSummary}
             </p>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-2 border-t border-sky-200/60 gap-2 text-[11px] text-slate-500">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-3 border-t border-[var(--border)] gap-2 text-[11px] text-[var(--ink-muted)]">
               <div className="flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                <Info className="w-3.5 h-3.5 text-[var(--ink-muted)] shrink-0" />
                 <span>
                   {selectedLang === "te"
                     ? "ఇది సమాచారం కోసం మాత్రమే. దయచేసి డాక్టర్‌ని సంప్రదించండి."
@@ -345,7 +352,7 @@ export default function PatientReportPage({
               <button
                 onClick={handleFlagSummary}
                 disabled={flagging || flaggedSuccess}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 underline self-start sm:self-auto disabled:text-emerald-700"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--ink-secondary)] hover:text-[var(--ink)] underline self-start sm:self-auto disabled:text-emerald-700"
               >
                 <Flag className="w-3 h-3" />
                 <span>
@@ -359,14 +366,14 @@ export default function PatientReportPage({
         )}
 
         {/* Test Results Table */}
-        <div className="space-y-3">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-            Diagnostic Test Results & Reference Ranges
+        <div className="space-y-4">
+          <h2 className="text-xs font-mono font-bold text-[var(--ink-muted)] uppercase tracking-wider">
+            Diagnostic Test Results <span className="ampersand">&amp;</span> Reference Ranges
           </h2>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
-              <thead className="bg-slate-100 text-slate-700 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200">
+            <table className="w-full text-left text-xs border border-[var(--border)] rounded-2xl overflow-hidden">
+              <thead className="bg-[var(--surface-card)] text-[var(--ink-muted)] font-mono font-semibold uppercase text-[10px] tracking-wider border-b border-[var(--border)]">
                 <tr>
                   <th className="py-3 px-4">Test Parameter</th>
                   <th className="py-3 px-4">Result</th>
@@ -374,7 +381,7 @@ export default function PatientReportPage({
                   <th className="py-3 px-4">Status / Flag</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-[var(--border-subtle)]">
                 {report.parameters.map((param) => {
                   const isParamCrit = param.flag === "CRITICAL";
                   const isOutOfRange = param.flag === "OUT_OF_RANGE";
@@ -384,33 +391,33 @@ export default function PatientReportPage({
                       key={param.id}
                       className={`transition-colors ${
                         isParamCrit
-                          ? "bg-rose-50/80 font-bold"
+                          ? "bg-rose-50/60 font-semibold"
                           : isOutOfRange
-                          ? "bg-amber-50/50"
-                          : "hover:bg-slate-50/50"
+                          ? "bg-amber-50/30"
+                          : "hover:bg-[var(--surface-hover)]"
                       }`}
                     >
                       {/* Name */}
-                      <td className="py-3.5 px-4 font-semibold text-slate-900">
-                        <div>{param.parameterName}</div>
-                        <div className="text-[10px] text-slate-400 font-normal">{param.testCategory}</div>
+                      <td className="py-4 px-4 font-semibold text-[var(--ink)]">
+                        <div className="text-sm font-serif">{param.parameterName}</div>
+                        <div className="text-[10px] text-[var(--ink-muted)] font-mono">{param.testCategory}</div>
                       </td>
 
                       {/* Result Value */}
-                      <td className="py-3.5 px-4 text-base font-black text-slate-950 font-mono">
+                      <td className="py-4 px-4 text-base font-bold text-[var(--ink)] font-mono">
                         <span>{param.resultValue}</span>
-                        <span className="text-xs font-normal text-slate-500 ml-1 font-sans">{param.unit}</span>
+                        <span className="text-xs font-normal text-[var(--ink-muted)] ml-1 font-sans">{param.unit}</span>
                       </td>
 
                       {/* Reference Range */}
-                      <td className="py-3.5 px-4 text-slate-600 font-mono">
+                      <td className="py-4 px-4 text-[var(--ink-secondary)] font-mono">
                         {param.refRangeMin} - {param.refRangeMax} {param.unit}
                       </td>
 
                       {/* Flag Pill */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-4 px-4">
                         {isParamCrit ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-600 text-white animate-pulse">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
                             <AlertTriangle className="w-3 h-3" /> CRITICAL ALERT
                           </span>
                         ) : isOutOfRange ? (
@@ -418,7 +425,7 @@ export default function PatientReportPage({
                             Out of Range
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-800">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
                             Normal
                           </span>
                         )}
@@ -432,21 +439,21 @@ export default function PatientReportPage({
         </div>
 
         {/* Pathologist Endorsement & Sign-Off Block */}
-        <div className="pt-6 border-t border-slate-200 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 text-xs">
+        <div className="pt-6 border-t border-[var(--border)] flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 text-xs">
           <div className="space-y-1">
-            <div className="text-[10px] uppercase font-bold text-slate-400">Pathology Verification</div>
-            <div className="font-bold text-slate-900 text-sm">{report.pathologist}</div>
-            <div className="text-[11px] text-slate-500">Consultant Pathologist, Coastal Diagnostics</div>
-            <div className="text-[10px] text-slate-400">Reg No: AP-MCI-48210</div>
+            <div className="text-[10px] uppercase font-mono tracking-wider text-[var(--ink-muted)]">Pathology Verification</div>
+            <div className="font-serif font-bold text-[var(--ink)] text-sm">{report.pathologist}</div>
+            <div className="text-[11px] text-[var(--ink-secondary)]">Consultant Pathologist, Coastal Diagnostics</div>
+            <div className="text-[10px] text-[var(--ink-muted)] font-mono">Reg No: AP-MCI-48210</div>
           </div>
 
           <div className="text-left sm:text-right space-y-1">
-            <div className="text-[10px] uppercase font-bold text-slate-400">Legal & Security Stamp</div>
+            <div className="text-[10px] uppercase font-mono tracking-wider text-[var(--ink-muted)]">Legal &amp; Security Stamp</div>
             <div className="text-[11px] text-emerald-700 font-semibold flex items-center sm:justify-end gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
               <span>DPDP Act 2023 Digital Signature Verified</span>
             </div>
-            <div className="text-[10px] text-slate-400">
+            <div className="text-[10px] text-[var(--ink-muted)] font-mono">
               End of signed clinical laboratory report
             </div>
           </div>
