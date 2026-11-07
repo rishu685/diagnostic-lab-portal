@@ -100,17 +100,10 @@ export default function PatientReportPage({
       const res = await fetch("/api/ai/flag-summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId: id,
-          reason: "Patient requested personal review by duty pathologist.",
-        }),
+        body: JSON.stringify({ orderId: id, reason: "Patient requested personal review by duty pathologist." }),
       });
-
-      if (res.ok) {
-        setFlaggedSuccess(true);
-      } else {
-        alert("Failed to submit review request");
-      }
+      if (res.ok) setFlaggedSuccess(true);
+      else alert("Failed to submit review request");
     } catch {
       alert("Network error");
     } finally {
@@ -122,12 +115,8 @@ export default function PatientReportPage({
     if (navigator.clipboard) {
       navigator.clipboard.writeText(window.location.href);
       setCopiedLink(true);
-      setTimeout(() => setCopiedLink(null as unknown as boolean), 2500);
+      setTimeout(() => setCopiedLink(false), 2500);
     }
-  };
-
-  const handlePrint = () => {
-    window.print();
   };
 
   if (loading) {
@@ -143,15 +132,12 @@ export default function PatientReportPage({
   if (error || !report) {
     return (
       <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4">
-        <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+        <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-200">
           <AlertTriangle className="w-6 h-6" />
         </div>
         <h2 className="text-lg font-serif font-bold text-[var(--ink)]">Report Not Available</h2>
         <p className="text-xs text-[var(--ink-secondary)]">{error || "Could not retrieve medical record"}</p>
-        <Link
-          href="/patient/login"
-          className="kanso-btn-primary text-xs"
-        >
+        <Link href="/patient/login" className="kanso-btn-primary text-xs">
           <ArrowLeft className="w-4 h-4" />
           <span>Return to Patient Portal</span>
         </Link>
@@ -160,14 +146,11 @@ export default function PatientReportPage({
   }
 
   const isCritical = report.status === "READY_CRITICAL";
-
-  // Summary selection by language
-  const activeSummary =
-    selectedLang === "te"
-      ? report.aiSummary?.summaryTe
-      : selectedLang === "hi"
-      ? report.aiSummary?.summaryHi
-      : report.aiSummary?.summaryEn;
+  const activeSummary = selectedLang === "te"
+    ? report.aiSummary?.summaryTe
+    : selectedLang === "hi"
+    ? report.aiSummary?.summaryHi
+    : report.aiSummary?.summaryEn;
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10 space-y-6">
@@ -181,55 +164,32 @@ export default function PatientReportPage({
           <span>Back to Portal</span>
         </Link>
 
-        {/* Multilingual Selector Pills (Telugu, English, Hindi) */}
+        {/* Multilingual Selector Pills */}
         <div className="flex items-center gap-1 bg-[var(--surface-card)] p-1 rounded-full border border-[var(--border-subtle)]">
           <Languages className="w-3.5 h-3.5 text-[var(--ink-muted)] ml-2 mr-0.5" />
-          <button
-            onClick={() => setSelectedLang("te")}
-            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-              selectedLang === "te"
-                ? "bg-[var(--ink)] text-[var(--bg)] shadow-[var(--shadow-sm)]"
-                : "text-[var(--ink-secondary)] hover:text-[var(--ink)]"
-            }`}
-          >
-            తెలుగు
-          </button>
-          <button
-            onClick={() => setSelectedLang("en")}
-            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-              selectedLang === "en"
-                ? "bg-[var(--ink)] text-[var(--bg)] shadow-[var(--shadow-sm)]"
-                : "text-[var(--ink-secondary)] hover:text-[var(--ink)]"
-            }`}
-          >
-            English
-          </button>
-          <button
-            onClick={() => setSelectedLang("hi")}
-            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-              selectedLang === "hi"
-                ? "bg-[var(--ink)] text-[var(--bg)] shadow-[var(--shadow-sm)]"
-                : "text-[var(--ink-secondary)] hover:text-[var(--ink)]"
-            }`}
-          >
-            हिंदी
-          </button>
+          {(["te", "en", "hi"] as const).map((lang) => (
+            <button
+              key={lang}
+              onClick={() => setSelectedLang(lang)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                selectedLang === lang
+                  ? "bg-[var(--ink)] text-[var(--bg)] shadow-[var(--shadow-sm)]"
+                  : "text-[var(--ink-secondary)] hover:text-[var(--ink)]"
+              }`}
+            >
+              {lang === "te" ? "తెలుగు" : lang === "en" ? "English" : "हिंदी"}
+            </button>
+          ))}
         </div>
 
         {/* Print / Share Buttons */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={handleShare}
-            className="kanso-btn-secondary py-1.5 px-3 text-xs"
-          >
+          <button onClick={handleShare} className="kanso-btn-secondary py-1.5 px-3 text-xs">
             {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Share2 className="w-3.5 h-3.5" />}
             <span>{copiedLink ? "Copied" : "Share"}</span>
           </button>
 
-          <button
-            onClick={handlePrint}
-            className="kanso-btn-primary py-1.5 px-3.5 text-xs font-semibold"
-          >
+          <button onClick={() => window.print()} className="kanso-btn-primary py-1.5 px-3.5 text-xs font-semibold">
             <Printer className="w-3.5 h-3.5" />
             <span>Download Official PDF</span>
           </button>
@@ -279,9 +239,7 @@ export default function PatientReportPage({
           </div>
           <div>
             <div className="text-[10px] uppercase font-mono tracking-wider text-[var(--ink-muted)]">Age / Gender</div>
-            <div className="font-semibold text-[var(--ink)] mt-0.5">
-              {report.patient.age} Yrs / {report.patient.gender}
-            </div>
+            <div className="font-semibold text-[var(--ink)] mt-0.5">{report.patient.age} Yrs / {report.patient.gender}</div>
           </div>
           <div>
             <div className="text-[10px] uppercase font-mono tracking-wider text-[var(--ink-muted)]">MRN (Hospital ID)</div>
@@ -296,7 +254,7 @@ export default function PatientReportPage({
           </div>
         </div>
 
-        {/* CRITICAL VALUE EMERGENCY BANNER (If Critical) */}
+        {/* Critical Clinical Alert Banner */}
         {isCritical && (
           <div className="bg-rose-50 border border-rose-300 rounded-2xl p-5 text-rose-950 space-y-2">
             <div className="flex items-center gap-2 font-serif font-bold text-sm text-rose-800">
@@ -312,7 +270,7 @@ export default function PatientReportPage({
           </div>
         )}
 
-        {/* PLAIN-LANGUAGE SUMMARY BOX (In Telugu / English / Hindi) */}
+        {/* Plain Language Summary Box */}
         {!isCritical && activeSummary && (
           <div className="kanso-card rounded-2xl p-6 bg-[var(--surface-card)] space-y-3 border-[var(--border)]">
             <div className="flex items-center justify-between">
@@ -326,7 +284,6 @@ export default function PatientReportPage({
                     : "Plain-Language Summary"}
                 </h3>
               </div>
-
               <span className="kanso-pill font-mono text-[9px]">
                 {report.aiSummary?.isTemplate ? "Locked Template" : "AI Synthesized"}
               </span>
@@ -348,24 +305,19 @@ export default function PatientReportPage({
                 </span>
               </div>
 
-              {/* Patient Flag Button */}
               <button
                 onClick={handleFlagSummary}
                 disabled={flagging || flaggedSuccess}
                 className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--ink-secondary)] hover:text-[var(--ink)] underline self-start sm:self-auto disabled:text-emerald-700"
               >
                 <Flag className="w-3 h-3" />
-                <span>
-                  {flaggedSuccess
-                    ? "Flagged for Pathologist Review ✓"
-                    : "వివరణలో సందేహం ఉందా? Flag for Pathologist"}
-                </span>
+                <span>{flaggedSuccess ? "Flagged for Pathologist Review ✓" : "వివరణలో సందేహం ఉందా? Flag for Pathologist"}</span>
               </button>
             </div>
           </div>
         )}
 
-        {/* Test Results Table */}
+        {/* Test Results Table with Miniature Visual Scale */}
         <div className="space-y-4">
           <h2 className="text-xs font-mono font-bold text-[var(--ink-muted)] uppercase tracking-wider">
             Diagnostic Test Results <span className="ampersand">&amp;</span> Reference Ranges
@@ -377,48 +329,62 @@ export default function PatientReportPage({
                 <tr>
                   <th className="py-3 px-4">Test Parameter</th>
                   <th className="py-3 px-4">Result</th>
-                  <th className="py-3 px-4">Normal Reference Range</th>
-                  <th className="py-3 px-4">Status / Flag</th>
+                  <th className="py-3 px-4">Reference Range</th>
+                  <th className="py-3 px-4">Visual Scale</th>
+                  <th className="py-3 px-4">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border-subtle)]">
                 {report.parameters.map((param) => {
                   const isParamCrit = param.flag === "CRITICAL";
                   const isOutOfRange = param.flag === "OUT_OF_RANGE";
+                  
+                  // Compute visual scale percentage (0% to 100%)
+                  const min = param.refRangeMin;
+                  const max = param.refRangeMax;
+                  const range = max - min || 1;
+                  const relativePos = Math.max(5, Math.min(95, ((param.resultValue - min) / range) * 60 + 20));
 
                   return (
                     <tr
                       key={param.id}
                       className={`transition-colors ${
-                        isParamCrit
-                          ? "bg-rose-50/60 font-semibold"
-                          : isOutOfRange
-                          ? "bg-amber-50/30"
-                          : "hover:bg-[var(--surface-hover)]"
+                        isParamCrit ? "bg-rose-50/60 font-semibold" : isOutOfRange ? "bg-amber-50/30" : "hover:bg-[var(--surface-hover)]"
                       }`}
                     >
-                      {/* Name */}
                       <td className="py-4 px-4 font-semibold text-[var(--ink)]">
                         <div className="text-sm font-serif">{param.parameterName}</div>
                         <div className="text-[10px] text-[var(--ink-muted)] font-mono">{param.testCategory}</div>
                       </td>
 
-                      {/* Result Value */}
                       <td className="py-4 px-4 text-base font-bold text-[var(--ink)] font-mono">
                         <span>{param.resultValue}</span>
                         <span className="text-xs font-normal text-[var(--ink-muted)] ml-1 font-sans">{param.unit}</span>
                       </td>
 
-                      {/* Reference Range */}
                       <td className="py-4 px-4 text-[var(--ink-secondary)] font-mono">
                         {param.refRangeMin} - {param.refRangeMax} {param.unit}
                       </td>
 
-                      {/* Flag Pill */}
+                      {/* Visual Reference Gauge */}
+                      <td className="py-4 px-4 min-w-[120px]">
+                        <div className="w-full h-2 rounded-full bg-[var(--surface-card)] border border-[var(--border)] relative overflow-hidden">
+                          {/* Normal Target Area */}
+                          <div className="absolute left-[20%] right-[20%] h-full bg-emerald-100 dark:bg-emerald-950/40" />
+                          {/* Value Position Indicator */}
+                          <div
+                            className={`absolute top-0 bottom-0 w-2 rounded-full -ml-1 ${
+                              isParamCrit ? "bg-rose-600" : isOutOfRange ? "bg-amber-500" : "bg-emerald-600"
+                            }`}
+                            style={{ left: `${relativePos}%` }}
+                          />
+                        </div>
+                      </td>
+
                       <td className="py-4 px-4">
                         {isParamCrit ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
-                            <AlertTriangle className="w-3 h-3" /> CRITICAL ALERT
+                            <AlertTriangle className="w-3 h-3" /> CRITICAL
                           </span>
                         ) : isOutOfRange ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-900 border border-amber-200">
@@ -438,7 +404,7 @@ export default function PatientReportPage({
           </div>
         </div>
 
-        {/* Pathologist Endorsement & Sign-Off Block */}
+        {/* Pathologist Endorsement Block */}
         <div className="pt-6 border-t border-[var(--border)] flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 text-xs">
           <div className="space-y-1">
             <div className="text-[10px] uppercase font-mono tracking-wider text-[var(--ink-muted)]">Pathology Verification</div>
@@ -453,9 +419,7 @@ export default function PatientReportPage({
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
               <span>DPDP Act 2023 Digital Signature Verified</span>
             </div>
-            <div className="text-[10px] text-[var(--ink-muted)] font-mono">
-              End of signed clinical laboratory report
-            </div>
+            <div className="text-[10px] text-[var(--ink-muted)] font-mono">End of signed clinical laboratory report</div>
           </div>
         </div>
       </div>

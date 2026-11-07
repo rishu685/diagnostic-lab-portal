@@ -10,32 +10,17 @@ import {
   Clock,
   ExternalLink,
   ShieldAlert,
-  RefreshCw,
-  Sparkles
+  RefreshCw
 } from "lucide-react";
 
 interface OrderItem {
   id: string;
-  patient: {
-    fullName: string;
-    phone: string;
-    age: number;
-    gender: string;
-  };
-  doctor: {
-    name: string;
-  };
+  patient: { fullName: string; phone: string; age: number; gender: string };
+  doctor: { name: string };
   labCentre: string;
   status: string;
-  signedAt: string | null;
-  secureToken: string | null;
   tokenExpiresAt: string | null;
-  parameters: Array<{
-    parameterName: string;
-    resultValue: number;
-    unit: string;
-    flag: string;
-  }>;
+  parameters: Array<{ parameterName: string; resultValue: number; unit: string; flag: string }>;
 }
 
 export default function FrontDeskPage() {
@@ -51,9 +36,7 @@ export default function FrontDeskPage() {
       setLoading(true);
       const res = await fetch("/api/orders");
       const data = await res.json();
-      if (data.orders) {
-        setOrders(data.orders);
-      }
+      if (data.orders) setOrders(data.orders);
     } catch (err) {
       console.error("Failed to load orders:", err);
     } finally {
@@ -69,18 +52,16 @@ export default function FrontDeskPage() {
     try {
       setResendingId(orderId);
       setActionSuccess(null);
-
       const res = await fetch(`/api/orders/${orderId}/resend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ channel, staffNote: "Requested by patient via front-desk inquiry" }),
       });
-
-      const data = await res.json();
       if (res.ok) {
         setActionSuccess(`Fresh 72h link dispatched via ${channel} to patient!`);
         fetchOrders();
       } else {
+        const data = await res.json();
         alert(data.error || "Failed to resend link");
       }
     } catch {
@@ -92,17 +73,9 @@ export default function FrontDeskPage() {
   };
 
   const filteredOrders = orders.filter((o) => {
-    const matchesSearch =
-      o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      o.patient.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      o.patient.phone.includes(searchTerm);
-
-    if (!matchesSearch) return false;
-    if (statusFilter === "ALL") return true;
-    if (statusFilter === "READY_CRITICAL") return o.status === "READY_CRITICAL";
-    if (statusFilter === "PROCESSING") return o.status === "PROCESSING";
-    if (statusFilter === "READY") return o.status === "READY";
-    return true;
+    const term = searchTerm.toLowerCase();
+    const matchesSearch = o.id.toLowerCase().includes(term) || o.patient.fullName.toLowerCase().includes(term) || o.patient.phone.includes(term);
+    return matchesSearch && (statusFilter === "ALL" || o.status === statusFilter);
   });
 
   return (
@@ -114,25 +87,19 @@ export default function FrontDeskPage() {
             <h1 className="text-2xl sm:text-3xl font-serif font-semibold text-[var(--ink)]">
               Front-Desk Dispatch <span className="ampersand">&amp;</span> Resend Console
             </h1>
-            <span className="kanso-pill font-mono text-[9px]">
-              VIJAYAWADA CENTRAL
-            </span>
+            <span className="kanso-pill font-mono text-[9px]">VIJAYAWADA CENTRAL</span>
           </div>
           <p className="text-xs text-[var(--ink-muted)] mt-1">
             Resolve patient status inquiries instantly, monitor 72h token countdowns, and resend secure links.
           </p>
         </div>
 
-        <button
-          onClick={fetchOrders}
-          className="kanso-btn-secondary py-1.5 px-3 self-start text-xs"
-        >
+        <button onClick={fetchOrders} className="kanso-btn-secondary py-1.5 px-3 self-start text-xs">
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
           <span>Refresh Data</span>
         </button>
       </div>
 
-      {/* Success Notification Alert */}
       {actionSuccess && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-950 rounded-2xl p-3.5 text-xs font-medium flex items-center justify-between shadow-[var(--shadow-sm)] animate-in fade-in">
           <div className="flex items-center gap-2">
@@ -143,7 +110,7 @@ export default function FrontDeskPage() {
         </div>
       )}
 
-      {/* Filters & Search Toolbar */}
+      {/* Filters Toolbar */}
       <div className="kanso-card rounded-2xl p-3.5 bg-[var(--surface)] flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-[var(--ink-muted)] absolute left-3 top-2.5" />
@@ -203,7 +170,7 @@ export default function FrontDeskPage() {
                 </tr>
               ) : filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[var(--ink-muted)]">
+                  <td colSpan={7} className="py-12 text-center text-[var(--ink-muted)] font-mono">
                     No matching orders found.
                   </td>
                 </tr>
@@ -217,9 +184,7 @@ export default function FrontDeskPage() {
                     <tr key={o.id} className="hover:bg-[var(--surface-hover)] transition-colors">
                       <td className="py-3.5 px-4 font-mono font-semibold">
                         <div className="text-[var(--ink)]">{o.id}</div>
-                        <div className="text-[10px] text-[var(--ink-muted)] font-sans font-normal truncate max-w-[140px]">
-                          {o.labCentre}
-                        </div>
+                        <div className="text-[10px] text-[var(--ink-muted)] font-sans font-normal truncate max-w-[140px]">{o.labCentre}</div>
                       </td>
 
                       <td className="py-3.5 px-4">
@@ -270,7 +235,7 @@ export default function FrontDeskPage() {
                         {isProcessing ? (
                           <span className="text-[var(--ink-muted)]">Not signed yet</span>
                         ) : hasExpired ? (
-                          <span className="text-rose-600 font-semibold flex items-center gap-1">
+                          <span className="text-rose-600 font-semibold flex items-center gap-1 font-mono">
                             <AlertCircle className="w-3 h-3" /> Expired (&gt;72h)
                           </span>
                         ) : (
@@ -291,10 +256,7 @@ export default function FrontDeskPage() {
                           <span>{resendingId === o.id ? "Sending..." : "Resend Link"}</span>
                         </button>
 
-                        <Link
-                          href={`/report/${o.id}`}
-                          className="kanso-btn-primary py-1 px-2.5 text-xs font-semibold"
-                        >
+                        <Link href={`/report/${o.id}`} className="kanso-btn-primary py-1 px-2.5 text-xs font-semibold">
                           <span>Report</span>
                           <ExternalLink className="w-3 h-3" />
                         </Link>

@@ -10,7 +10,8 @@ import {
   Stethoscope,
   RefreshCw,
   ShieldAlert,
-  Save
+  Save,
+  Check
 } from "lucide-react";
 
 interface CallbackItem {
@@ -20,57 +21,27 @@ interface CallbackItem {
   assignedTo: string | null;
   status: string;
   callNotes: string | null;
-  calledAt: string | null;
-  resolvedAt: string | null;
   order: {
     id: string;
     labCentre: string;
-    signedAt: string | null;
-    patient: {
-      fullName: string;
-      phone: string;
-      age: number;
-      gender: string;
-    };
-    doctor: {
-      name: string;
-      phone: string | null;
-      specialty: string | null;
-    };
-    parameters: Array<{
-      parameterName: string;
-      resultValue: number;
-      unit: string;
-      refRangeMin: number;
-      refRangeMax: number;
-      flag: string;
-    }>;
+    patient: { fullName: string; phone: string; age: number; gender: string };
+    doctor: { name: string; phone: string | null; specialty: string | null };
+    parameters: Array<{ parameterName: string; resultValue: number; unit: string; flag: string }>;
   };
 }
 
 export default function CallbacksPage() {
   const [tasks, setTasks] = useState<CallbackItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [notes, setNotes] = useState<Record<string, string>>({});
-  const [statuses, setStatuses] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [savedId, setSavedId] = useState<string | null>(null);
 
   const fetchCallbacks = async () => {
     try {
       setLoading(true);
       const res = await fetch("/api/callbacks");
       const data = await res.json();
-      if (data.tasks) {
-        setTasks(data.tasks);
-        const initNotes: Record<string, string> = {};
-        const initStatuses: Record<string, string> = {};
-        data.tasks.forEach((t: CallbackItem) => {
-          initNotes[t.id] = t.callNotes || "";
-          initStatuses[t.id] = t.status;
-        });
-        setNotes(initNotes);
-        setStatuses(initStatuses);
-      }
+      if (data.tasks) setTasks(data.tasks);
     } catch (err) {
       console.error("Failed to load callbacks:", err);
     } finally {
@@ -82,20 +53,21 @@ export default function CallbacksPage() {
     fetchCallbacks();
   }, []);
 
-  const saveCallback = async (id: string) => {
+  const updateTaskField = (id: string, field: "status" | "callNotes", val: string) => {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, [field]: val } : t)));
+  };
+
+  const saveCallback = async (task: CallbackItem) => {
     try {
-      setSavingId(id);
-      const res = await fetch(`/api/callbacks/${id}/update`, {
+      setSavingId(task.id);
+      const res = await fetch(`/api/callbacks/${task.id}/update`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: statuses[id],
-          callNotes: notes[id],
-        }),
+        body: JSON.stringify({ status: task.status, callNotes: task.callNotes }),
       });
-
       if (res.ok) {
-        fetchCallbacks();
+        setSavedId(task.id);
+        setTimeout(() => setSavedId(null), 2500);
       } else {
         alert("Failed to update callback");
       }
@@ -126,10 +98,7 @@ export default function CallbacksPage() {
           </p>
         </div>
 
-        <button
-          onClick={fetchCallbacks}
-          className="kanso-btn-secondary py-1.5 px-3 text-xs self-start"
-        >
+        <button onClick={fetchCallbacks} className="kanso-btn-secondary py-1.5 px-3 text-xs self-start">
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
           <span>Refresh Queue</span>
         </button>
@@ -148,7 +117,7 @@ export default function CallbacksPage() {
             )}
           </div>
           <p className="text-xs text-[var(--ink-secondary)] leading-relaxed font-sans">
-            Whenever an analyzer detects values exceeding life-threatening thresholds (e.g. Potassium &gt; 6.2 mmol/L, Fasting Sugar &gt; 400 mg/dL), the portal blocks AI plain summaries to prevent dangerous reassurance. A staff callback task is issued within 5 minutes of sign-off.
+            Whenever an analyzer detects values exceeding life-threatening thresholds (e.g. Potassium &gt; 6.2 mmol/L), the portal blocks AI plain summaries to prevent dangerous reassurance. A staff callback task is issued within 5 minutes of sign-off.
           </p>
         </div>
       </div>
@@ -177,7 +146,6 @@ export default function CallbacksPage() {
                   isPending ? "border-rose-300 ring-2 ring-rose-100/50" : "border-[var(--border)]"
                 }`}
               >
-                {/* Task Top Meta */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3 border-b border-[var(--border)]">
                   <div className="flex items-center gap-2">
                     <span className="font-mono font-bold text-[var(--ink)] text-sm">{t.orderId}</span>
@@ -195,35 +163,28 @@ export default function CallbacksPage() {
                   </div>
                 </div>
 
-                {/* Urgent Alert Banner */}
                 <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 text-xs text-rose-900 font-semibold flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
                   <span>{t.urgentReason}</span>
                 </div>
 
-                {/* Patient & Doctor Contact Details */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                  {/* Patient Info */}
                   <div className="bg-[var(--surface-card)] p-4 rounded-2xl border border-[var(--border)] space-y-1.5">
                     <div className="font-serif font-bold text-[var(--ink)] text-sm flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5 text-[var(--ink-muted)]" />
                       <span>Patient: {t.order.patient.fullName}</span>
                     </div>
-                    <div className="text-[var(--ink-muted)]">
+                    <div className="text-[var(--ink-muted)] font-mono">
                       Age: {t.order.patient.age}y • Gender: {t.order.patient.gender}
                     </div>
                     <div className="pt-2 flex items-center justify-between">
                       <span className="font-mono text-[var(--ink)] font-semibold">+91 {t.order.patient.phone}</span>
-                      <a
-                        href={`tel:${t.order.patient.phone}`}
-                        className="kanso-btn-primary py-1 px-3 text-[11px]"
-                      >
+                      <a href={`tel:${t.order.patient.phone}`} className="kanso-btn-primary py-1 px-3 text-[11px]">
                         <PhoneCall className="w-3 h-3" /> Call Patient
                       </a>
                     </div>
                   </div>
 
-                  {/* Doctor Info */}
                   <div className="bg-[var(--surface-card)] p-4 rounded-2xl border border-[var(--border)] space-y-1.5">
                     <div className="font-serif font-bold text-[var(--ink)] text-sm flex items-center gap-1.5">
                       <Stethoscope className="w-3.5 h-3.5 text-[var(--ink-muted)]" />
@@ -234,17 +195,13 @@ export default function CallbacksPage() {
                     </div>
                     <div className="pt-2 flex items-center justify-between">
                       <span className="font-mono text-[var(--ink)] font-semibold">{t.order.doctor.phone || "+91 98480 12345"}</span>
-                      <a
-                        href={`tel:${t.order.doctor.phone || "9848012345"}`}
-                        className="kanso-btn-secondary py-1 px-3 text-[11px]"
-                      >
+                      <a href={`tel:${t.order.doctor.phone || "9848012345"}`} className="kanso-btn-secondary py-1 px-3 text-[11px]">
                         <PhoneCall className="w-3 h-3" /> Call Doctor
                       </a>
                     </div>
                   </div>
                 </div>
 
-                {/* Staff Action & Call Notes Area */}
                 <div className="pt-3 border-t border-[var(--border)] flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
                   <div className="flex-1 w-full sm:w-auto">
                     <label className="block text-[11px] font-serif font-semibold text-[var(--ink)] mb-1">
@@ -252,17 +209,17 @@ export default function CallbacksPage() {
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. Spoke with Dr. Suresh; patient instructed to visit casualty immediately..."
-                      value={notes[t.id] ?? (t.callNotes || "")}
-                      onChange={(e) => setNotes({ ...notes, [t.id]: e.target.value })}
+                      placeholder="e.g. Advised immediate hospitalization..."
+                      value={t.callNotes || ""}
+                      onChange={(e) => updateTaskField(t.id, "callNotes", e.target.value)}
                       className="w-full px-3 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] text-xs text-[var(--ink)] focus:outline-none focus:ring-1 focus:ring-[var(--ink)]"
                     />
                   </div>
 
                   <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                     <select
-                      value={statuses[t.id] ?? t.status}
-                      onChange={(e) => setStatuses({ ...statuses, [t.id]: e.target.value })}
+                      value={t.status}
+                      onChange={(e) => updateTaskField(t.id, "status", e.target.value)}
                       className="px-3 py-1.5 rounded-full border border-[var(--border)] text-xs font-semibold text-[var(--ink)] bg-[var(--surface)] focus:outline-none"
                     >
                       <option value="PENDING">Pending Call</option>
@@ -272,12 +229,21 @@ export default function CallbacksPage() {
                     </select>
 
                     <button
-                      onClick={() => saveCallback(t.id)}
+                      onClick={() => saveCallback(t)}
                       disabled={savingId === t.id}
-                      className="kanso-btn-primary py-1.5 px-3 text-xs"
+                      className="kanso-btn-primary py-1.5 px-3.5 text-xs font-semibold"
                     >
-                      <Save className="w-3.5 h-3.5" />
-                      <span>{savingId === t.id ? "Saving..." : "Update Status"}</span>
+                      {savedId === t.id ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>Saved!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-3.5 h-3.5" />
+                          <span>{savingId === t.id ? "Saving..." : "Update"}</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
