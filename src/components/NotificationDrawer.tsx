@@ -102,7 +102,7 @@ export function NotificationDrawer() {
             <div className="mt-3 bg-[var(--surface-card)] border border-[var(--border)] rounded-xl p-3 text-xs text-[var(--ink-secondary)] flex items-start gap-2">
               <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <div>
-                <strong>Reviewer Note:</strong> Outside SMS systems are simulated per brief rules. Test OTP is <code className="bg-[var(--surface)] px-1 py-0.5 rounded border border-[var(--border)] font-mono font-bold text-[var(--ink)]">123456</code>.
+                <strong>Simulation Mode:</strong> Outbound SMS/WhatsApp gateways are captured locally. Sandbox OTP is <code className="bg-[var(--surface)] px-1 py-0.5 rounded border border-[var(--border)] font-mono font-bold text-[var(--ink)]">123456</code>.
               </div>
             </div>
 

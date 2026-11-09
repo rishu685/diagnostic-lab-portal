@@ -1,9 +1,9 @@
-# Deployment & Reviewer Guide
+# Deployment & System Operations Guide
 ## Diagnostic Lab Report-Delivery Portal (Company A, Vijayawada)
 
 **GitHub Repository**: `https://github.com/rishu685/diagnostic-lab-portal`
 
-This guide provides step-by-step instructions for running the project locally, details on deployment, required environment variables, and pre-configured demo credentials for the reviewer.
+This guide provides step-by-step instructions for running the project locally, details on deployment, required environment variables, and pre-configured test credentials for operations.
 
 ---
 
@@ -27,7 +27,7 @@ npm install
 # Pushes the Prisma schema to local SQLite (dev.db)
 npx prisma db push
 
-# Seeds realistic diagnostic data (including brief sample orders: ORD-71204, ORD-71219, ORD-71233)
+# Seeds realistic diagnostic data (including clinical sample orders: ORD-71204, ORD-71219, ORD-71233)
 npm run seed
 ```
 
@@ -45,9 +45,9 @@ All 11 automated clinical range, HMAC token expiration, and safety killswitch te
 
 ---
 
-## 2. Reviewer Demo Credentials & Walkthrough Guide
+## 2. System Walkthrough & Pre-Configured Test Roles
 
-The application comes pre-loaded with the exact sample data specified in the brief. You can test each role immediately:
+The application comes pre-loaded with clinical datasets across all four roles:
 
 ### A. Patient Role (OTP Authentication & Multilingual View)
 * **Access URL**: `http://localhost:3000/patient/login`
@@ -56,7 +56,7 @@ The application comes pre-loaded with the exact sample data specified in the bri
   2. `9848033333` — **Farzana Begum** (`ORD-71233`): Critical Potassium 6.8 mmol/L. Emergency alert displayed; AI summary blocked.
   3. `9848022222` — **Venkata Rao M** (`ORD-71219`): LDL cholesterol 142 mg/dL. Status: In Analyzer / Processing.
   4. `9848044444` — **Subba Rao Chowdary** (`ORD-71240`): All parameters normal.
-* **Universal Demo OTP**: `123456` *(Works for all accounts in demo mode, or click the "Auto-fill" button on screen)*.
+* **Sandbox Verification OTP**: `123456` *(Works for all accounts in sandbox mode, or click the "Auto-fill" button on screen)*.
 * **Direct 72-Hour Link Test**: Click on the floating **"SMS / WhatsApp Simulator"** button at the bottom-right of any screen to test what the patient receives on WhatsApp!
 
 ### B. Front-Desk Staff Role
@@ -85,7 +85,7 @@ The application comes pre-loaded with the exact sample data specified in the bri
 ### E. LIS CSV Import & Auto Sign-Off
 * **Access URL**: `http://localhost:3000/lis-import`
 * **Capabilities**:
-  * Click "Reset to Brief Samples" or upload any CSV export.
+  * Click "Reset to Clinical Samples" or upload any CSV export.
   * Real-time clinical parameter parser & flag evaluator.
   * "Process & Sign-Off All" triggers instant 72-hour token generation, locked template summaries, and DPDP audit entries.
 

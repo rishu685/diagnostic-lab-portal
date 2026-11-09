@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: `A 6-digit verification code has been sent via SMS to ******${cleanPhone.slice(-4)}.`,
-      // Provide simulatedCode for reviewers to test easily
+      // Provide simulatedCode for sandbox staging environments
       simulatedCode: code,
       expiresAt,
     });

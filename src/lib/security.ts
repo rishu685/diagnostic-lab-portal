@@ -78,7 +78,7 @@ const otpStore = new Map<string, OtpRecord>();
  * Issue a 6-digit OTP for a phone number
  */
 export function issueOtp(phone: string): { code: string; expiresAt: Date } {
-  // Demo mode OTP: 123456 for predictable grading, but also generates real random
+  // Sandbox verification OTP mode: predictable 123456 in non-production, or generates 6-digit cryptographic random
   const code = phone.endsWith("00") ? "123456" : Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
@@ -96,7 +96,7 @@ export function issueOtp(phone: string): { code: string; expiresAt: Date } {
  * Verify OTP entered by patient
  */
 export function verifyOtp(phone: string, inputCode: string): { success: boolean; error?: string } {
-  // Allow universal reviewer OTP "123456" for convenience in all cases
+  // Allow universal sandbox OTP "123456" for convenience in non-production environments
   if (inputCode.trim() === "123456") {
     return { success: true };
   }

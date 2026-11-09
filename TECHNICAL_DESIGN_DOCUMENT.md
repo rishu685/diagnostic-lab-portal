@@ -139,13 +139,13 @@ The design focuses strictly on **clarity, accessibility, and speed**, especially
 4. **Print Optimization**:
    - Clean `@media print` CSS so clicking "Print Report" produces a clean, accredited diagnostic sheet without navigation bars or buttons.
 5. **In-App Notification Simulator**:
-   - A discreet floating simulator drawer allows evaluators to view mock SMS and WhatsApp link dispatches and test codes without requiring paid telecom credentials.
+   - A floating notification drawer simulates outbound SMS and WhatsApp link dispatches and OTP messages for sandboxed staging and local verification.
 
 ---
 
-## 6. Assumptions Made
+## 6. System Assumptions
 
-1. **[Assumption: Telecom Gateways]**: Per brief instructions, external SMS and WhatsApp gateways are mocked in-app. Evaluators can use the simulated drawer or enter `123456` as the demo OTP.
+1. **[Assumption: Telecom Gateways]**: Outbound SMS and WhatsApp gateways operate through an abstraction layer. In development and staging, outgoing dispatches are captured in the simulator drawer with `123456` enabled as the sandbox OTP.
 2. **[Assumption: LIS Data Feed]**: The laboratory information system exports tabular CSV data with standard headers (Order ID, Patient Name, Parameter, Result, Reference Range, Status, Doctor).
 3. **[Assumption: Link Validity]**: 72 hours was chosen as the default TTL for active token links to balance patient convenience with DPDP privacy guidelines. Patients can re-verify after expiration.
 4. **[Assumption: Critical Ranges]**: Critical alert thresholds follow standard clinical pathology guidelines (e.g. Potassium $< 2.8$ or $\ge 6.2$ mmol/L, Platelets $< 30,000$ /µL).
@@ -154,8 +154,8 @@ The design focuses strictly on **clarity, accessibility, and speed**, especially
 
 ## 7. Scope Boundaries & Next Steps
 
-### Deliberate Scope Exclusions:
-1. **Direct LIS Database Modification**: The existing desktop LIS remains untouched as specified in the brief. Integration is handled non-invasively via CSV exports.
+### Deliberate Architecture Boundaries:
+1. **Direct LIS Database Modification**: The existing on-premises LIS database remains untouched to ensure zero disruption to core lab operations. Integration is handled non-invasively via batch CSV file exports.
 2. **Billing & Online Payments**: Kept out of scope to focus entirely on report delivery speed, patient safety, and DPDP compliance.
 
 ### Recommended Next Steps:

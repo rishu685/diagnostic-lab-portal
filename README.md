@@ -58,22 +58,22 @@ npm test
 
 ---
 
-## Reviewer Demo Roles & Pre-Seeded Data
+## System Roles & Demo Walkthrough
 
-| Role | Route | Instructions | Sample Details |
+| Role | Route | Access Method | Key Features |
 | :--- | :--- | :--- | :--- |
 | **Patient (Expiring Link)** | `/r/mock-tok-71204` | Click *Send OTP*, enter `123456` | Complete Blood Count (Hb: 10.2 g/dL) |
-| **Patient (Critical Killswitch)**| `/r/mock-tok-71219` | Click *Send OTP*, enter `123456` | Potassium 2.4 mEq/L (AI blocked, flagged red) |
-| **Patient Phone Login** | `/patient/login` | Phone: `9848011223`, OTP: `123456` | Overview of all patient reports |
-| **Front-Desk Console** | `/front-desk` | Open directly | Status monitoring, 1-tap SMS resend |
-| **Referring Doctor** | `/doctor` | Select Dr. K. Venkatesh, MD | 90-day archive of referred cases |
-| **Emergency Callbacks** | `/callbacks` | Open directly | Critical callback workflow & duty logging |
-| **DPDP Audit Log** | `/audit-logs` | Open directly | Immutable chronological access trail |
-| **LIS CSV Ingestion** | `/lis-import` | Click *Load Sample Data* | Batch test parser and dispatch |
+| **Patient (Critical Killswitch)**| `/r/mock-tok-71219` | Click *Send OTP*, enter `123456` | Potassium 2.4 mEq/L (AI suppressed, critical alert) |
+| **Patient Phone Login** | `/patient/login` | Phone: `9848011223`, OTP: `123456` | Unified history across all lab orders |
+| **Front-Desk Console** | `/front-desk` | Direct access | Delivery status tracking & instant SMS resend |
+| **Referring Physician** | `/doctor` | Select Dr. K. Venkatesh, MD | 90-day archive of referred patient cases |
+| **Emergency Callbacks** | `/callbacks` | Direct access | Critical value escalation & duty log trail |
+| **DPDP Compliance Audit** | `/audit-logs` | Direct access | Immutable audit log under DPDP Act 2023 |
+| **LIS Batch Ingestion** | `/lis-import` | Click *Load Sample Data* | Laboratory information system CSV importer |
 
 ---
 
-## Submission Artifacts
+## Technical Documentation
 
-- **[TECHNICAL_DESIGN_DOCUMENT.pdf](./TECHNICAL_DESIGN_DOCUMENT.pdf)**: Complete architectural, clinical safety, UI design, and financial ROI breakdown.
-- **[deployment.md](./deployment.md)**: Deployment guidelines and environment configuration.
+- **[TECHNICAL_DESIGN_DOCUMENT.md](./TECHNICAL_DESIGN_DOCUMENT.md)**: Architectural specifications, clinical safety protocols, UI system design, and DPDP compliance framework.
+- **[deployment.md](./deployment.md)**: System deployment instructions and environment configuration reference.

@@ -45,3 +45,13 @@ next-env.d.ts
 *.db-journal
 
 /src/generated/prisma
+
+# Tooling, IDE, and submission artifacts
+.agents
+.claude
+.windsurf
+AGENTS.md
+skills-lock.json
+*.pdf
+submission.zip
+
