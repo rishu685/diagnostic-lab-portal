@@ -1,6 +1,8 @@
 # Deployment & Reviewer Guide
 ## Diagnostic Lab Report-Delivery Portal (Company A, Vijayawada)
 
+**GitHub Repository**: `https://github.com/rishu685/diagnostic-lab-portal`
+
 This guide provides step-by-step instructions for running the project locally, details on deployment, required environment variables, and pre-configured demo credentials for the reviewer.
 
 ---
@@ -9,9 +11,10 @@ This guide provides step-by-step instructions for running the project locally, d
 
 The project uses Next.js 16 with SQLite via Prisma. It requires **Node.js 18+ or 20+** and zero external database configuration.
 
-### Step 1: Navigate to Project Directory
+### Step 1: Clone & Navigate to Project Directory
 ```bash
-cd /Users/apple/Desktop/diagnostic-lab-portal
+git clone https://github.com/rishu685/diagnostic-lab-portal.git
+cd diagnostic-lab-portal
 ```
 
 ### Step 2: Install Dependencies
