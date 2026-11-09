@@ -1,5 +1,7 @@
 # Technical Design Document (TDD)
 ## Diagnostic Lab Report-Delivery Portal
+**GitHub Repository**: `https://github.com/[YOUR-USERNAME]/diagnostic-lab-portal`  
+**Live Demo App**: `https://diagnostic-lab-portal.vercel.app` (or `http://localhost:3000`)  
 **Client**: Company A, Vijayawada, Coastal Andhra Pradesh  
 **Prepared by**: Rishabh  
 **Target Roles**: Patients, Front-Desk Staff, Referring Physicians, and Lab Technicians  
