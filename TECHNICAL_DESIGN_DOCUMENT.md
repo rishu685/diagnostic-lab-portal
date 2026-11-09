@@ -1,41 +1,40 @@
 # Technical Design Document (TDD)
 ## Diagnostic Lab Report-Delivery Portal
 **Client**: Company A, Vijayawada, Coastal Andhra Pradesh  
-**Prepared for**: Founder-CEO, Diagnostic Operations & Technical Assessment Committee  
-**GitHub Repository**: `https://github.com/your-username/diagnostic-lab-portal` *(Update with your repository URL)*  
-**Live Application URL**: `https://diagnostic-lab-portal.vercel.app` *(Optional deployment link)*  
+**Prepared by**: Rishabh  
+**Target Roles**: Patients, Front-Desk Staff, Referring Physicians, and Lab Technicians  
 
 ---
 
-## 1. Executive Summary & Problem Recap
+## 1. Problem Overview & Requirements
 
-Company A operates 6 diagnostic reference laboratories and 38 collection centres across coastal Andhra Pradesh, handling approximately 2,000 patients daily (7,20,000 orders/year). 
+Company A operates 6 diagnostic reference laboratories and 38 collection centres across coastal Andhra Pradesh, handling ~2,000 patients daily.
 
-### The Core Problem:
-1. **Status Inquiry Overhead**: ~30% of patients call or walk in to ask if reports are ready. At 600 calls/day $\times$ 4 minutes, this consumes 40 staff hours daily (14,400 hours/year $\times$ ₹250 = **₹36 Lakh/year**).
-2. **Physical Printing Waste**: 40% of reports are printed and manually delivered (2,88,000 reports $\times$ ₹12 = **₹34.56 Lakh/year**).
-3. **Misdelivery & Privacy Risk**: Front-desk staff manually dispatch PDFs from 9 shared WhatsApp phones, causing ~15 misdeliveries every month. Under the **Digital Personal Data Protection (DPDP) Act 2023**, health diagnostic data is sensitive personal data requiring strict consent, sovereign hosting, and immutable access logging.
-4. **Accessibility Barriers**: Many patients are elderly and read Telugu; conventional LIS lab reports present dense medical jargon without actionable context.
+### Current Operational Bottlenecks:
+1. **High Call Overhead**: ~30% of patients call or visit in person just to ask if their test results are ready, tying up staff time.
+2. **Physical Printing Costs**: 40% of reports are printed on paper, incurring avoidable printing and logistics expenses.
+3. **Misdelivery & Privacy Risk**: Front-desk staff manually dispatch PDFs over shared WhatsApp phones, occasionally leading to misdeliveries. Under India's **DPDP Act 2023**, medical reports require verified consent, secure transmission, and access logging.
+4. **Accessibility & Language Barriers**: Many patients are elderly and read Telugu. Standard lab printouts contain dense technical jargon that causes unnecessary confusion and anxiety.
 
-### The Delivered Solution:
-An end-to-end web portal delivering:
-- Automatic generation of **72-hour expiring links** dispatched the moment a pathologist signs off on LIS CSV ingestion.
-- **Two-Factor OTP Authentication** tied to the registered patient mobile, terminating misdeliveries.
-- **Elderly-Friendly UI** with high-contrast type and plain-language summaries in **Telugu (తెలుగు), English, and Hindi**.
-- **Clinical AI Safety Guardrails**: Deterministic out-of-range flagging, locked clinical templates for common tests, and a **Critical Value Killswitch** that blocks AI and generates an immediate emergency callback task for staff.
-- **Multi-Role Portals**: Dedicated experiences for Patients, Front-Desk Staff, and Referring Physicians (90-day history).
+### Delivered Solution:
+An end-to-end, lightweight web portal providing:
+- **72-hour expiring links** dispatched automatically after pathologist sign-off.
+- **Two-Factor Mobile OTP Authentication** to ensure only the intended patient accesses the report.
+- **Plain-language summaries in Telugu, English, and Hindi** alongside standard clinical values.
+- **Deterministic clinical range checks with a Critical Value Killswitch**: when life-threatening values are detected, automated AI interpretations are suppressed, and an urgent phone callback task is assigned to duty staff.
+- **Dedicated operational dashboards**: Front-Desk console (link status & 1-tap resend), Referring Doctors portal (90-day archive), and Emergency Callback queue.
 
 ---
 
-## 2. Architecture & Technology Stack
+## 2. System Architecture & Tech Stack
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        INGESTION & DATA LAYER                          │
-│  [LIS Export Folder / CSV]  ──>  [LIS Ingestion & Validation Worker]   │
+│  [LIS CSV Export]  ──>  [Ingestion Parser & Validation Engine]         │
 │                                           │                            │
 │                        Deterministic Reference Engine                  │
-│                        (Range check: Normal / Out-of-range / Critical) │
+│                        (Normal / Out-of-Range / Critical)              │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │
                                     ▼
@@ -44,10 +43,10 @@ An end-to-end web portal delivering:
 │           ┌───────────────────────┴───────────────────────┐            │
 │           ▼                                               ▼            │
 │   [Normal / Out-of-Range]                        [Critical Value!]     │
-│   - Generate 72h Signed Token                    - Mark Urgent Status  │
-│   - Draft Multilingual Summary                   - NO AI Summary       │
-│     (Telugu/English/Hindi)                       - Push to Callback    │
-│   - Queue SMS/WhatsApp Notification                Task Queue          │
+│   - Generate 72h Signed Token                    - Mark URGENT Status  │
+│   - Plain-Language Summary                       - Suppress AI Summary │
+│     (Telugu / English / Hindi)                   - Queue Emergency     │
+│   - Draft SMS / WhatsApp Link                      Staff Callback Task │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │
                                     ▼
@@ -66,193 +65,98 @@ An end-to-end web portal delivering:
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Stack Selection & Rationale:
-* **Next.js 16 (App Router, React 19, TypeScript)**: Full-stack unified architecture. Server Components deliver zero-bundle overhead on low-end 4G mobile devices in coastal Andhra.
-* **Tailwind CSS v4**: Ultra-lightweight styling with semantic color coding and print media queries (`@media print`) for pixel-perfect diagnostic printouts.
-* **Prisma ORM & SQLite**: Provides zero-configuration local execution for evaluators while maintaining strict relational foreign keys and schema migrations.
-* **HMAC-SHA256 Token Encryption**: Stateless cryptographic token generation ensuring 72-hour expiration cannot be forged or tampered with.
-* **Dual-Mode AI Engine (Gemini 2.5 Flash + Locked Clinical Templates)**: Pre-vetted medical templates for 30 common tests provide instant, error-free offline operation; dynamic Gemini synthesis activates when an API key is present.
-* **Vitest**: Sub-second automated regression testing across clinical range evaluation, token security, and safety killswitches.
+### Technology Choices & Rationale:
+* **Next.js (App Router, React, TypeScript)**: Single unified codebase for both backend APIs and front-end UI. Server-side rendering ensures fast page loads on 4G mobile connections.
+* **Tailwind CSS**: Utility-first styling with high visual contrast and print stylesheets (`@media print`) for clean physical copies.
+* **Prisma ORM & SQLite**: Zero-configuration, file-based database for simple local evaluation that maintains strict relational integrity.
+* **HMAC-SHA256 Token Signing**: Stateless 72-hour tokens that cannot be forged or tampered with.
+* **Dual-Mode Clinical Explanations**:
+  - **Locked Medical Templates**: Pre-curated explanations for 30 common tests across Telugu, English, and Hindi. Fast, deterministic, and free of hallucination risks.
+  - **Optional Gemini API**: Dynamically synthesizes explanations if an API key is provided, bound by safety rules (no prescribing medications, no direct diagnoses).
+* **Vitest**: Automated test suite for clinical range evaluation, token expiration, and safety killswitch logic.
 
 ---
 
-## 3. Data Model & Database Schema
+## 3. Database Schema
 
-The database model is designed around strict relational integrity and DPDP Act 2023 compliance:
+The database model is built around patient privacy and clinical governance:
 
-```prisma
-model Patient {
-  id            String       @id @default(cuid())
-  mrn           String       @unique // Medical Record Number
-  fullName      String
-  phone         String       // Patient mobile number (masked on UI)
-  age           Int
-  gender        String
-  consentGiven  Boolean      @default(true) // DPDP Act statutory consent
-  preferredLang String       @default("te") // te = Telugu, en = English, hi = Hindi
-  orders        Order[]
-  createdAt     DateTime     @default(now())
-}
-
-model Doctor {
-  id        String   @id @default(cuid())
-  name      String
-  code      String   @unique // e.g. DOC-RAM-01
-  specialty String?
-  phone     String?
-  orders    Order[]
-  createdAt DateTime @default(now())
-}
-
-model Order {
-  id             String        @id // e.g. ORD-71204
-  patientId      String
-  patient        Patient       @relation(fields: [patientId], references: [id])
-  doctorId       String
-  doctor         Doctor        @relation(fields: [doctorId], references: [id])
-  labCentre      String        @default("Vijayawada Central Lab")
-  status         String        @default("PROCESSING") // PROCESSING, READY, READY_CRITICAL, DELIVERED
-  signedAt       DateTime?
-  pathologist    String?       @default("Dr. K. V. Rao, MD (Path)")
-  secureToken    String?       @unique // Base64URL HMAC token
-  tokenExpiresAt DateTime?     // Strict 72h timestamp
-  parameters     TestResult[]
-  aiSummary      AiSummary?
-  callbackTask   CallbackTask?
-  accessLogs     AccessLog[]
-  createdAt      DateTime      @default(now())
-}
-
-model TestResult {
-  id            String   @id @default(cuid())
-  orderId       String
-  order         Order    @relation(fields: [orderId], references: [id])
-  testCategory  String   // e.g. Complete Blood Count, Electrolytes
-  parameterName String   // e.g. Haemoglobin, Potassium, LDL cholesterol
-  resultValue   Float
-  unit          String
-  refRangeMin   Float
-  refRangeMax   Float
-  flag          String   @default("NORMAL") // NORMAL, OUT_OF_RANGE, CRITICAL
-  createdAt     DateTime @default(now())
-}
-
-model AiSummary {
-  id                  String   @id @default(cuid())
-  orderId             String   @unique
-  order               Order    @relation(fields: [orderId], references: [id])
-  summaryEn           String
-  summaryTe           String   // Telugu translation
-  summaryHi           String   // Hindi translation
-  isTemplate          Boolean  @default(false)
-  isFlaggedByPatient  Boolean  @default(false)
-  patientFeedback     String?
-  pathologistApproved Boolean  @default(false)
-}
-
-model CallbackTask {
-  id           String    @id @default(cuid())
-  orderId      String    @unique
-  order        Order     @relation(fields: [orderId], references: [id])
-  urgentReason String
-  assignedTo   String?   @default("Front Desk Nurse Coordinator")
-  status       String    @default("PENDING") // PENDING, IN_PROGRESS, RESOLVED, ESCALATED
-  callNotes    String?
-  calledAt     DateTime?
-  resolvedAt   DateTime?
-}
-
-model AccessLog {
-  id         String   @id @default(cuid())
-  orderId    String
-  order      Order    @relation(fields: [orderId], references: [id])
-  actorPhone String
-  actorRole  String   // PATIENT, FRONT_DESK, DOCTOR, SYSTEM
-  action     String   // LINK_OPENED, OTP_REQUESTED, OTP_VERIFIED, REPORT_VIEWED, LINK_RESENT
-  ipAddress  String?
-  userAgent  String?
-  status     String   @default("SUCCESS")
-  details    String?
-  createdAt  DateTime @default(now())
-}
-```
+* **Patient**: Medical Record Number (MRN), full name, masked phone, age, gender, preferred language (`te`, `en`, `hi`), and statutory DPDP consent flag.
+* **Doctor**: Doctor code (e.g. `DOC-RAM-01`), full name, specialty, and contact phone.
+* **Order**: Unique order ID (e.g. `ORD-71204`), patient/doctor relations, lab centre, status (`PROCESSING`, `READY`, `READY_CRITICAL`, `DELIVERED`), pathologist sign-off timestamp, HMAC secure token, and 72h expiration timestamp.
+* **TestResult**: Parameter name, numerical result, unit, reference range (min/max), and calculated flag (`NORMAL`, `OUT_OF_RANGE`, `CRITICAL`).
+* **AiSummary**: Multilingual explanations (English, Telugu, Hindi), template indicator, patient flag status, and pathologist approval status.
+* **CallbackTask**: High-priority tasks automatically generated for critical values, tracking assignment, clinical reason, call notes, and resolution status (`PENDING`, `IN_PROGRESS`, `RESOLVED`).
+* **AccessLog**: Immutable audit records tracking IP address, user agent, actor role, timestamp, and action (link open, OTP request, report view, resend).
 
 ---
 
-## 4. Key Workflows & AI Safety Architecture
+## 4. Key Workflows & Clinical Safety Rules
 
-### 4.1 LIS CSV Ingestion & Pathologist Sign-Off
-1. Front-desk or laboratory technician uploads the daily LIS CSV file or pastes the raw stream (`/lis-import`).
-2. The ingestion parser parses test parameters, identifies reference ranges, matches or creates patient and doctor entities, and computes clinical flags.
-3. If all parameters are within normal ranges, the report is marked `READY`, signed, and an SMS notification is drafted.
+### 4.1 LIS CSV Ingestion & Sign-Off
+1. Lab operators upload or paste the daily LIS CSV export (`/lis-import`).
+2. The ingestion parser matches test results against reference ranges, associates the record with the patient and referring doctor, and computes flags.
+3. If all parameters are within safe ranges, the order status is set to `READY`, a signed 72h token is generated, and a notification link is drafted.
 
-### 4.2 The Critical Value Killswitch (Safety Guardrail)
-Per clinical governance rules in the client brief:
-* **The Rule**: When an analyzer detects an extreme life-threatening deviation (e.g. Potassium $\ge 6.2$ mmol/L, Fasting Blood Sugar $\ge 400$ mg/dL, Platelets $\le 30,000$ /µL):
-  1. The report status is immediately set to `READY_CRITICAL`.
-  2. **AI interpretation is completely blocked** (`summaryEn = ""` and `summaryTe = ""`) to prevent the patient from misinterpreting a dangerous condition as benign.
-  3. A high-priority `CallbackTask` is automatically placed into the duty staff queue (`/callbacks`).
-  4. The front desk nurse must call the referring doctor and patient directly within 15 minutes.
+### 4.2 Critical Value Killswitch (Safety Guardrail)
+* When an analyzer detects a life-threatening abnormal value (e.g. Potassium $\ge 6.2$ mmol/L, Fasting Glucose $\ge 400$ mg/dL, Platelets $\le 30,000$ /µL):
+  1. The report status is marked **`READY_CRITICAL`**.
+  2. **Automated AI interpretation is strictly suppressed** to prevent misleading or falsely reassuring the patient.
+  3. A high-priority **`CallbackTask`** is automatically queued in the staff dashboard (`/callbacks`).
+  4. The front-desk duty coordinator must call both the patient and the referring doctor directly.
 
 ### 4.3 Multilingual Plain-Language Summaries
-For non-critical out-of-range values (e.g. Haemoglobin 10.2 g/dL):
-1. **Pre-vetted Locked Templates**: 30 common clinical tests have human-curated explanations in English, Telugu, and Hindi:
-   > **Telugu Example (Haemoglobin 10.2)**:  
-   > *"మీ హిమోగ్లోబిన్ సాధారణం కంటే కొద్దిగా తక్కువగా ఉంది (స్వల్ప రక్తహీనత). మీకు కొంచెం నీరసంగా అనిపించవచ్చు. ఐరన్ ఆహారాలు లేదా మందుల కొరకు మీ వైద్యుడిని సంప్రదించండి."*
-2. **AI Dynamic Mode**: If `GEMINI_API_KEY` is present, the app calls `gemini-2.5-flash` with strict negative constraints (no disease diagnoses, no drug prescriptions, mandatory doctor referral).
-3. **Patient Feedback Flag**: Patients can click *"వివరణలో సందేహం ఉందా? Flag for Pathologist"* to send the summary into the weekly 50-summary review audit queue.
+* For standard out-of-range values (e.g. Haemoglobin 10.2 g/dL):
+  - Pre-vetted clinical templates provide clear, empathetic context:
+    > **Telugu**: *"మీ హిమోగ్లోబిన్ సాధారణం కంటే కొద్దిగా తక్కువగా ఉంది (స్వల్ప రక్తహీనత). ఆహారంలో మార్పులు లేదా ఐరన్ సప్లిమెంట్ల కొరకు మీ వైద్యుడిని సంప్రదించండి."*
+  - Patients can click *"Flag for Pathologist"* if any summary is confusing, routing it to the weekly audit queue.
 
 ### 4.4 72-Hour Expiring Links & Two-Factor OTP
-1. Each approved report receives an HMAC-SHA256 signed token:  
-   $$\text{Token} = \text{base64url}(\text{orderId} : \text{phone} : \text{expiresAt} : \text{HMAC\_SHA256}(\text{data}, \text{SECRET}))$$
-2. The SMS link points to `https://app.coastal-diag.in/r/[token]`.
-3. When opened, the portal validates the signature and ensures $\text{Date.now}() < \text{expiresAt}$.
-4. If valid, the patient enters their mobile number and a 6-digit OTP dispatched to that number.
-5. Once verified, an encrypted session cookie grants access to the report.
-6. If the token is older than 72 hours, access is strictly rejected with a clear explanation of DPDP data protection and a one-click button to request a fresh OTP link.
+1. The secure link (`/r/[token]`) contains a base64url-encoded payload signed with HMAC-SHA256: `orderId:phone:expiresAt:signature`.
+2. When the link is opened, the system checks whether `Date.now() < expiresAt`.
+3. If expired, access is blocked, and the patient is prompted to request a fresh OTP link.
+4. If valid, the patient enters their registered phone number and a 6-digit OTP (universal demo code: `123456`).
+5. Upon successful verification, an HTTP-only session cookie is issued for authorized report viewing.
 
 ---
 
-## 5. UI/UX Design Decisions: The Kanso Minimalist Architecture
+## 5. UI/UX Design Decisions
 
-The client brief mandates: *"The client values good, minimal design: clean layouts, white space, a restrained palette and clear type, with nothing on screen that lacks a purpose. Design counts as much as features. Many patients are elderly on small phones: large text, one clear action per screen, and a report page that reads well in Telugu."*
+The design focuses strictly on **clarity, accessibility, and speed**, especially for elderly patients using budget Android devices on 4G networks:
 
-To achieve this at an elite standard, the design architecture is inspired by the **Kanso (簡素)** philosophy—Japanese aesthetic of purity, unadorned simplicity, and intentional restraint:
-
-1. **Editorial Typography**:
-   - Primary Headers: **Newsreader & EB Garamond** serif headings with classical italicized accents (`<em>for patients & doctors</em>`), evoking trust, warmth, and clinical prestige.
-   - Body & Controls: **Plus Jakarta Sans & Inter** for crisp, highly readable mobile typography.
-   - Clinical Parameters: **Geist Mono** for numeric results, reference ranges, and tokens.
-2. **Atmospheric Color & Surface Palette**:
-   - Warm paper canvas (`#fcfcfc`), tactile stone cards (`#f5f5f4`), delicate borders (`#e7e5e4`), and deep charcoal ink (`#1a1817`).
-   - Restrained semantic indicators: Muted clinical olive for operational sync, soft amber for out-of-range parameters, and high-contrast terracotta for critical alerts.
-   - **Bespoke Theme System**: Includes an instantaneous Light/Dark theme toggle (warm paper mode vs. obsidian night mode) with smooth CSS variable transitions.
-3. **Signature Kanso Components & Features**:
-   - **Live Perspective Activity Stage (`/`)**: A dynamic 3D-inspired clinical feed displaying live order dispatches, pathologist sign-offs, and critical callbacks across coastal AP labs with animated pulse beacons.
-   - **Elderly-First Accessibility**: 48px+ touch targets, uncluttered single-action forms, and natural Telugu vernacular phrasing (`మీ ల్యాబ్ రిపోర్ట్ / సులభమైన వివరణ`).
-   - **Clinical Tenets Grid**: Structured editorial manifesto explaining clinical governance, privacy, and patient dignity.
-   - **Print-Optimized Diagnostic Document (`/report/[id]`)**: `@media print` layout rendering an accredited diagnostic lab document ready for physical records.
-   - **Floating In-App Simulator**: Discreet drawer providing reviewers live access to mocked SMS and WhatsApp dispatches with one-click copyable test codes.
+1. **Elderly-Friendly Accessibility**:
+   - **Large Touch Targets**: Minimum 48px tap targets on all buttons and inputs to prevent missed taps.
+   - **High-Contrast Visual Cues**: Clear badges for test results—Green (Normal), Amber (Out of Range), and Red (Critical Alert)—so status is immediately obvious without reading dense tables.
+   - **One Main Action per Screen**: Clean step-by-step flow (Phone entry $\to$ OTP verification $\to$ Report view) to minimize cognitive load.
+2. **First-Class Telugu Localization**:
+   - Natural phrasing in Telugu vernacular (`మీ ల్యాబ్ రిపోర్ట్ / సులభమైన వివరణ`), with 1-tap switching between Telugu, English, and Hindi.
+3. **Operational Dashboards for Staff**:
+   - **Front-Desk Console (`/front-desk`)**: Search by patient name or phone, view live 72-hour countdowns, and resend links with a single click.
+   - **Critical Callback Manager (`/callbacks`)**: Urgent alert banner, direct `tel:` phone call buttons, and status updating.
+   - **Referring Doctor Archive (`/doctor`)**: 90-day chronological history grouped by referring doctor code.
+4. **Print Optimization**:
+   - Clean `@media print` CSS so clicking "Print Report" produces a clean, accredited diagnostic sheet without navigation bars or buttons.
+5. **In-App Notification Simulator**:
+   - A discreet floating simulator drawer allows evaluators to view mock SMS and WhatsApp link dispatches and test codes without requiring paid telecom credentials.
 
 ---
 
-## 6. Assumptions Made (Labeled per Submission Guidelines)
+## 6. Assumptions Made
 
-1. **[Assumption: Telecom Gateways]**: Per the brief constraint (*"Mock payments, messages and outside systems, and seed from the sample data"*), SMS and WhatsApp notifications are simulated in-app via the floating Simulator Drawer and universal reviewer OTP `123456`, with real random generation available.
-2. **[Assumption: LIS Export Format]**: Assumed the LIS outputs CSV files with tab or comma separation containing Order ID, Patient Name, Parameter, Result, Reference Range, Status, and Referring Doctor.
-3. **[Assumption: DPDP Retention Period]**: Assumed 72 hours as the primary active link TTL, after which patients must re-authenticate with mobile OTP to reissue access.
-4. **[Assumption: Critical Thresholds]**: Assumed international pathology critical thresholds (Potassium $< 2.8$ or $\ge 6.2$ mmol/L, Fasting Glucose $< 50$ or $\ge 400$ mg/dL, Haemoglobin $< 6.5$ g/dL, Platelets $< 30,000$ /µL).
+1. **[Assumption: Telecom Gateways]**: Per brief instructions, external SMS and WhatsApp gateways are mocked in-app. Evaluators can use the simulated drawer or enter `123456` as the demo OTP.
+2. **[Assumption: LIS Data Feed]**: The laboratory information system exports tabular CSV data with standard headers (Order ID, Patient Name, Parameter, Result, Reference Range, Status, Doctor).
+3. **[Assumption: Link Validity]**: 72 hours was chosen as the default TTL for active token links to balance patient convenience with DPDP privacy guidelines. Patients can re-verify after expiration.
+4. **[Assumption: Critical Ranges]**: Critical alert thresholds follow standard clinical pathology guidelines (e.g. Potassium $< 2.8$ or $\ge 6.2$ mmol/L, Platelets $< 30,000$ /µL).
 
 ---
 
-## 7. What We Cut & What We Would Do Next
+## 7. Scope Boundaries & Next Steps
 
-### Scope Cuts (Deliberate & Well-Judged):
-1. **LIS Desktop Integration**: We deliberately did not alter the existing desktop LIS software (explicitly out of scope in the brief). Instead, we built a file-watcher/CSV importer that ingests LIS exports.
-2. **Online Payment & Home Collection**: Bookings and payments were kept out of scope to focus 100% of engineering bandwidth on report delivery security and clinical AI accuracy.
+### Deliberate Scope Exclusions:
+1. **Direct LIS Database Modification**: The existing desktop LIS remains untouched as specified in the brief. Integration is handled non-invasively via CSV exports.
+2. **Billing & Online Payments**: Kept out of scope to focus entirely on report delivery speed, patient safety, and DPDP compliance.
 
-### Next Steps (Post-MVP Roadmap):
-1. **Official WhatsApp Business Cloud API Integration**: Direct webhook integration with Meta Cloud API for automated template messages with DPDP opt-out buttons.
-2. **ABDM (Ayushman Bharat Digital Mission) Health ID Linking**: Link diagnostic reports to patient ABHA (Ayushman Bharat Health Account) addresses for interoperability across Indian hospital systems.
-3. **Automated Audio Explanations**: Text-to-speech voice notes in colloquial Telugu for illiterate elderly patients who cannot read written script.
-4. **Pathologist 50-Summary Weekly Audit Queue**: A dedicated review interface where the chief pathologist can approve or edit AI summaries in bulk.
+### Recommended Next Steps:
+1. **WhatsApp Business API**: Connect official WhatsApp Cloud API for automated dispatch of approved templates.
+2. **ABDM / ABHA Integration**: Link reports to Ayushman Bharat Health Accounts for national health record interoperability.
+3. **Voice Explanations**: Add audio playback of Telugu summaries for illiterate or visually impaired patients.
